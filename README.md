@@ -11,9 +11,9 @@
 2. 使用[OBS](https://obsproject.com/)录制一整个长的视频，包括忘词口胡等等都不要停
 3. 使用[subs.py](subs.py)调用[faster_whisper](https://github.com/SYSTRAN/faster-whisper)产生与视频匹配的字幕
 4. 使用[Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit)编辑产生的字幕，在这一阶段去掉各种不可公开的片段并校对字幕，只需要保留要保留的视频片段对应的字幕即可，必要时调整时间轴
-5. 以下操作(5-7)在[Davinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve)中进行，这里只是大致介绍，后面的章节有更详细的使用方法。使用[这个插件](Comp/Build Timeline from Subtitle Plugin.py)，根据字幕文件中的时间轴，把视频切片创建成一个Davinci Resolve中的时间轴，同时导出最终视频的字幕。
+5. 以下操作(5-7)在[Davinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve)中进行，这里只是大致介绍，后面的章节有更详细的使用方法。使用[这个插件](<Comp/Build Timeline from Subtitle Plugin.py>)，根据字幕文件中的时间轴，把视频切片创建成一个Davinci Resolve中的时间轴，同时导出最终视频的字幕。
 6. 在Davinci Resolve中Normalize时间轴中的音频
-7. 在Davinci Resolve中使用[这个插件](Comp/export_to_final.py)导出成品视频
+7. 在Davinci Resolve中使用[这个](Comp/export_to_final.py)导出成品视频
 8. 使用[Microsoft Powerpoint](https://www.microsoft.com/en-us/microsoft-365/powerpoint)与特定的模板制作封面
 9. 手动上传到[我的频道](https://space.bilibili.com/823532)，并更新[这个文档](https://docs.qq.com/sheet/DSUdOTG9xWUdydVB6)
 10. 等待审核结束，添加字幕，添加视频到合集
