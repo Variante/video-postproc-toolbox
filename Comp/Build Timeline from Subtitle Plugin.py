@@ -14,13 +14,17 @@ timelineID = "Timeline"
 expswitchID = "ExportEnable"
 expsubsID = "ExportSubs"
 targetID = "TargetPath"
-
+logID = "Log"
 
 video_type = '.mkv'
 subtitle_type = '.srt'
 
 ui = fusion.UIManager
 dispatcher = bmd.UIDispatcher(ui)
+
+resolve = app.GetResolve()
+ms = resolve.GetMediaStorage()
+projectManager = resolve.GetProjectManager()
 
 # check for existing instance
 win = ui.FindWindow(winID)
@@ -71,25 +75,36 @@ win = dispatcher.AddWindow({
         ]),
         ui.HGroup({ 'Weight': 0, }, [
             ui.CheckBox({'Text': 'Export subs', 'ID': expswitchID, 'Checked': True}),
-            ui.Label({'Text': 'Export path: ', 'Weight': 0}),
+            ui.Label({'Text': 'Target path: ', 'Weight': 0}),
             ui.LineEdit({
                 'ID': targetID,
                 'Weight': 5
             })
         ]),
-        ui.Button({ 'ID': execID,  'Text': "Import Videos and Export Subtitles" })
+        ui.Button({ 'ID': execID,  'Text': "Import Videos" }),
+        ui.TextEdit({
+			'ID': logID,
+            'Weight': 5,
+            'ReadOnly': True
+			}),
         
 	])
 )
+   
 
-# Event handlers
-def OnClose(ev):
-	dispatcher.ExitLoop()
-    
+def log_print(text):
+    text = str(text)
+    print(text)
+    log = win.Find(logID)
+    tl = log.PlainText.split('\n')
+    tl.append(text)
+    limit = 50
+    if len(tl) > limit:
+        tl = tl[-limit:]
+    log.PlainText = '\n'.join(tl)
+
     
 def getAllTimelines():
-    resolve = app.GetResolve()
-    projectManager = resolve.GetProjectManager()
     project = projectManager.GetCurrentProject()
     
     # get names of all timelines
@@ -116,7 +131,7 @@ def compress_subtitles(subs, video_length, output_subtitle_path):
     n = len(subs)
     
     if n == 0:
-        print('No subtitle found')
+        log_print('No subtitle found')
         return
     
     for i in range(n):
@@ -128,7 +143,7 @@ def compress_subtitles(subs, video_length, output_subtitle_path):
         subs[i].start -= diff
         subs[i].end -= diff
     sd = subs[-1].end / 1000
-    print(f'Subtitle vs Video length: {sd} vs {video_length}')
+    log_print(f'Subtitle vs Video length: {sd:.3f} vs {video_length:.3f}, timestamps aligned.')
     
     ratio = video_length / sd
     for i in range(n):
@@ -136,17 +151,16 @@ def compress_subtitles(subs, video_length, output_subtitle_path):
         subs[i].end *= ratio
     # Save the adjusted subtitles
     subs.save(output_subtitle_path)
+    log_print('Compressed subs exported to ' + output_subtitle_path)
 
 
 def OnExec(ev):
 	# import file
     if win.Find(fileID).Count == 0:
-        print('Please select a file to import')
+        log_print('Please select a file to import')
         return
     
     # add video file to media pool
-    resolve = app.GetResolve()
-    ms = resolve.GetMediaStorage()
     file_base = win.Find(fileID).CurrentText
     ms.AddItemListToMediaPool(file_base + video_type)
 
@@ -154,10 +168,9 @@ def OnExec(ev):
     _, file_name = osp.split(file_base)
     full_file_name = file_name + video_type
     timeline_name = win.Find(timelineID).Text
-    # print(f'{full_file_name = } {timeline_name = }')
+    # log_print(f'{full_file_name = } {timeline_name = }')
 
     # find the clip items (media pool item)
-    projectManager = resolve.GetProjectManager()
     project = projectManager.GetCurrentProject()
     mediaPool = project.GetMediaPool()
     rootFolder = mediaPool.GetRootFolder()
@@ -168,14 +181,13 @@ def OnExec(ev):
             break
     
     # prepare the clip to insert
-    
     subtitle_path = file_base + subtitle_type
     subs = pysubs2.load(subtitle_path)
-    # print(clip.GetClipProperty())
+    # log_print(clip.GetClipProperty())
     fps = clip.GetClipProperty('FPS')
     
     subClipList = []    
-    for i, sub in enumerate(merge_close_subtitles(subs)):
+    for sub in merge_close_subtitles(subs):
         start = sub.start / 1000.0  # Convert milliseconds to seconds
         end = sub.end / 1000.0
         subClipList.append({
@@ -184,7 +196,7 @@ def OnExec(ev):
             "endFrame": int(end * fps),
         })
     if len(subClipList) == 0:
-        print('No clip founded, exit')
+        log_print('No clip founded, exit')
         return
     # find the timeline to insert
     timelines = getAllTimelines()
@@ -196,7 +208,7 @@ def OnExec(ev):
         target_timeline = mediaPool.CreateTimelineFromClips(timeline_name, subClipList[:1])
         project.SetCurrentTimeline(target_timeline)
         mediaPool.AppendToTimeline(subClipList[1:])
-    print(f'Insert {len(subClipList)} clips, {len(target_timeline.GetItemListInTrack("video", 1))} clips in timeline {target_timeline.GetName()}')
+    log_print(f'Insert {len(subClipList)} clips, {len(target_timeline.GetItemListInTrack("video", 1))} clips in timeline {target_timeline.GetName()}')
     resolve.OpenPage('Edit')
     
     # export subs
@@ -204,9 +216,29 @@ def OnExec(ev):
         subs = pysubs2.load(subtitle_path)
         subs_dst = osp.join(win.Find(targetID).Text, timeline_name + subtitle_type)
         compress_subtitles(subs, target_timeline.GetEndFrame()/fps, subs_dst)
+    log_print('-' * 10 + 'Done' + '-' * 10)
+
+def getTimelineName():
+    t = datetime.now()
+    i = 1
     
+    # get names of all timelines
+    timelines = getAllTimelines()
     
+    # log_print(timelines)
+    while True:
+        s = f'{t.year:04d}{t.month:02d}{i:02d}'
+        if s not in timelines:
+            break
+        i += 1
+    return s
+
     
+# Event handlers
+def OnClose(ev):
+	dispatcher.ExitLoop()
+ 
+ 
 def OnRefresh(ev):
     files = glob(osp.join(win.Find(sourceID).Text, '*' + video_type))
     # file with srt:
@@ -219,31 +251,10 @@ def OnRefresh(ev):
     win.Find(timelineID).Text = getTimelineName()
     
 
-
 # assign event handlers
 win.On[winID].Close     = OnClose
 win.On[execID].Clicked  = OnExec
 win.On[refreshID].Clicked = OnRefresh
-
-def getTimelineName():
-    t = datetime.now()
-    i = 1
-    
-    resolve = app.GetResolve()
-    projectManager = resolve.GetProjectManager()
-    project = projectManager.GetCurrentProject()
-    
-    # get names of all timelines
-    timelines = getAllTimelines()
-    
-    # print(timelines)
-    while True:
-        s = f'{t.year:04d}{t.month:02d}{i:02d}'
-        if s not in timelines:
-            break
-        i += 1
-    return s
-    
 
 
 win.Find(sourceID).Text = 'D:\\Video2024'
@@ -257,4 +268,3 @@ OnRefresh(None)
 # Main dispatcher loop
 win.Show()
 dispatcher.RunLoop()
-
