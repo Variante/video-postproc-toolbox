@@ -3,6 +3,7 @@
 一个适合[我的频道](https://space.bilibili.com/823532)的视频后期工具箱。
 
 ## 日志
+- 4/14/24 根据字幕时间点前后的声音大小来精调字幕时间轴
 - 4/13/24 创建了这个仓库
 
 ## 秋刀鱼都能懂的Windows用视频工作流
@@ -13,7 +14,7 @@
 4. 使用[Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit)编辑产生的字幕，在这一阶段去掉各种不可公开的片段并校对字幕，只需要保留要保留的视频片段对应的字幕即可，必要时调整时间轴
 5. 以下操作(5-7)在[Davinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve)中进行，这里只是大致介绍，后面的章节有更详细的使用方法。使用[这个插件](<Comp/Build Timeline from Subtitle Plugin.py>)，根据字幕文件中的时间轴，把视频切片创建成一个Davinci Resolve中的时间轴，同时导出最终视频的字幕。
 6. 在Davinci Resolve中Normalize时间轴中的音频
-7. 在Davinci Resolve中使用[这个](Comp/export_to_final.py)导出成品视频
+7. 在Davinci Resolve中使用[这个脚本](Comp/export_to_final.py)导出成品视频
 8. 使用[Microsoft Powerpoint](https://www.microsoft.com/en-us/microsoft-365/powerpoint)与特定的模板制作封面
 9. 手动上传到[我的频道](https://space.bilibili.com/823532)，并更新[这个文档](https://docs.qq.com/sheet/DSUdOTG9xWUdydVB6)
 10. 等待审核结束，添加字幕，添加视频到合集
@@ -42,5 +43,4 @@
 
 ## TODO
 - 能不能自动normalize音频啊
-- 感觉需要更好的将声音和字幕对轴的工具，或许是一个研究声音处理的好契机
 - 应该根据Arxiv号自己生成我的视频标题和介绍，会搞但今天懒了
