@@ -1,4 +1,5 @@
 import feedparser
+import re
 
 def get_arxiv_title(arxiv_id):
     # Construct the URL for the arXiv API query
@@ -20,11 +21,21 @@ def get_arxiv_title(arxiv_id):
         return None
 
 if __name__ == '__main__':
-    arxiv_id = '2404.07973'
+    file = 'arxiv_info.txt'
+    pattern = r'\b\d{4}\.\d{4,}?\b' # arxiv ID
+    try:
+        with open(file, 'r') as f:
+            line = f.readline()
+            arxiv_id = re.findall(pattern, line)[0]
+    except:
+        arxiv_id = '2404.07973'
+    
     title = get_arxiv_title(arxiv_id)
     arxiv_link = f'https://arxiv.org/abs/{arxiv_id}'
     
-    result = f"""{title}[{arxiv_id}]
+    result = f"""{arxiv_id}
+    
+{title}[{arxiv_id}]
 
 论文题目：{title}
 论文地址：{arxiv_link}
@@ -32,7 +43,5 @@ if __name__ == '__main__':
 {title}\t{arxiv_link}"""
     
     print(result)
-    with open('arxiv_info.txt', 'w', encoding='utf8') as f:
+    with open(file, 'w', encoding='utf8') as f:
         f.write(result)
-    
-    

@@ -16,7 +16,7 @@
 6. 在Davinci Resolve中Normalize时间轴中的音频
 7. 在Davinci Resolve中使用[这个脚本](Comp/export_to_final.py)导出成品视频
 8. 使用[Microsoft Powerpoint](https://www.microsoft.com/en-us/microsoft-365/powerpoint)与特定的模板制作封面
-9. 编辑[arxiv_info.py](arxiv_info.py)，将格式化的论文信息输出到`arxiv_info.txt`
+9. 编辑`arxiv_info.txt`第一行为要查询的arxiv论文的ID，运行[arxiv_info.py](arxiv_info.py)，格式化的论文信息会重新输出到`arxiv_info.txt`
 10. 手动上传到[我的频道](https://space.bilibili.com/823532)，并更新[这个文档](https://docs.qq.com/sheet/DSUdOTG9xWUdydVB6)
 11. 等待审核结束，添加字幕，添加视频到合集
 12. 和观众吹一会儿牛，然后摸了
