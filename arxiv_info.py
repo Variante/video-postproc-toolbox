@@ -28,7 +28,7 @@ if __name__ == '__main__':
             line = f.readline()
             arxiv_id = re.findall(pattern, line)[0]
     except:
-        arxiv_id = '2404.07973'
+        arxiv_id = '2307.01849'
     
     title = get_arxiv_title(arxiv_id)
     arxiv_link = f'https://arxiv.org/abs/{arxiv_id}'

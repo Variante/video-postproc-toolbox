@@ -30,7 +30,13 @@
 ![alt text](figs/menu.png)
 3. 使用Build Timeline from Subtitle Plugin根据字幕导入切好的视频，方法见图
 ![alt text](figs/plugin.png)
-4. 使用export_to_final后会自动创建渲染任务（默认YouTube - 1080P预设），自己点一下渲染即可
+4. 记得Normalize时间轴中的音频
+5. 使用export_to_final后会自动创建渲染任务（默认YouTube - 1080P预设），自己点一下渲染即可
+
+## 步骤9中arxiv_info.py的使用方法
+1. 第一次使用时直接运行，会自动创建`arxiv_info.txt`这个文件
+2. 在`arxiv_info.txt`的第一行输入包含arxiv论文ID的文本（比如论文的摘要链接、论文pdf链接等等）
+3. 再次运行`arxiv_info.py`会自动用查到的信息覆盖`arxiv_info.txt`
 
 ## 不需要使用的env.bat
 如题，这个是在让Davinci Resolve使用外部脚本的时候需要设置的环境变量，但外部脚本一直拿不到resolve，就算了，放在这里也许谁能用得到。
