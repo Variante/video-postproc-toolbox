@@ -3,7 +3,7 @@
 一个适合[我的频道](https://space.bilibili.com/823532)的视频后期工具箱。
 
 ## 日志
-- 4/14/24 根据字幕时间点前后的声音大小来精调字幕时间轴
+- 4/14/24 根据字幕时间点前后的声音大小来精调字幕时间轴; 增加了arxiv标题查询工具
 - 4/13/24 创建了这个仓库
 
 ## 秋刀鱼都能懂的Windows用视频工作流
@@ -16,9 +16,10 @@
 6. 在Davinci Resolve中Normalize时间轴中的音频
 7. 在Davinci Resolve中使用[这个脚本](Comp/export_to_final.py)导出成品视频
 8. 使用[Microsoft Powerpoint](https://www.microsoft.com/en-us/microsoft-365/powerpoint)与特定的模板制作封面
-9. 手动上传到[我的频道](https://space.bilibili.com/823532)，并更新[这个文档](https://docs.qq.com/sheet/DSUdOTG9xWUdydVB6)
-10. 等待审核结束，添加字幕，添加视频到合集
-11. 和观众吹一会儿牛，然后摸了
+9. 编辑[arxiv_info.py](arxiv_info.py)，将格式化的论文信息输出到`arxiv_info.txt`
+10. 手动上传到[我的频道](https://space.bilibili.com/823532)，并更新[这个文档](https://docs.qq.com/sheet/DSUdOTG9xWUdydVB6)
+11. 等待审核结束，添加字幕，添加视频到合集
+12. 和观众吹一会儿牛，然后摸了
 
 ## 步骤3中subs.py的使用方法
 更改第10行`'video_path': 'D:\\Video2024'`为存放视频的目录，代码会扫描目录下所有没有相应`srt`字幕文件的`mkv`视频，然后尝试生成字幕。
@@ -43,4 +44,3 @@
 
 ## TODO
 - 能不能自动normalize音频啊
-- 应该根据Arxiv号自己生成我的视频标题和介绍，会搞但今天懒了
