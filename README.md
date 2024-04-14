@@ -41,7 +41,6 @@
 以及[这个文档](https://resolve.cafe/developers/scripting/)(其实你本地也有一份在`C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting\README.txt`)，和这个[UI文档](https://resolvedevdoc.readthedocs.io/en/latest/UI_elements_attrb.html#window)。插件的UI虽然没有官方文档，但是据说操作逻辑和[Qt](https://www.qt.io/)是相似的。
 
 ## TODO
-- 字幕会因为合并多个clip的问题逐渐和视频产生偏差，想个聪明的法子修一下（当然再来一遍whisper也是可以的，但是这一切值得吗？
 - 能不能自动normalize音频啊
 - 感觉需要更好的将声音和字幕对轴的工具，或许是一个研究声音处理的好契机
 - 应该根据Arxiv号自己生成我的视频标题和介绍，会搞但今天懒了

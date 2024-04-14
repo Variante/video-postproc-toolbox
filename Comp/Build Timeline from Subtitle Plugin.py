@@ -106,28 +106,34 @@ def merge_close_subtitles(subs, threshold=500):
     while i < len(subs) - 1:
         if subs[i+1].start - subs[i].end <= threshold:
             subs[i].end = subs[i+1].end
-            subs[i].text += "\\n" + subs[i+1].text  # Merge text of two subtitles
             del subs[i+1]
         else:
             i += 1
     return subs
 
 
-def compress_subtitles(subs, output_subtitle_path):
-    i = 0
-    if len(subs) == 0:
+def compress_subtitles(subs, video_length, output_subtitle_path):
+    n = len(subs)
+    
+    if n == 0:
+        print('No subtitle found')
         return
     
-    while i < len(subs):
+    for i in range(n):
         # Adjust the start of the next subtitle to immediately follow the current one
-        l = subs[i].end - subs[i].start
         if i == 0:
-            subs[i].start = 0
+            diff = subs[i].start
         else:
-            subs[i].start = subs[i - 1].end + 1
-        subs[i].end = subs[i].start + l
-        i += 1
-        
+            diff = subs[i].start - subs[i - 1].end - 1
+        subs[i].start -= diff
+        subs[i].end -= diff
+    sd = subs[-1].end / 1000
+    print(f'Subtitle vs Video length: {sd} vs {video_length}')
+    
+    ratio = video_length / sd
+    for i in range(n):
+        subs[i].start *= ratio
+        subs[i].end *= ratio
     # Save the adjusted subtitles
     subs.save(output_subtitle_path)
 
@@ -165,10 +171,10 @@ def OnExec(ev):
     
     subtitle_path = file_base + subtitle_type
     subs = pysubs2.load(subtitle_path)
+    # print(clip.GetClipProperty())
     fps = clip.GetClipProperty('FPS')
     
-    subClipList = []
-    
+    subClipList = []    
     for i, sub in enumerate(merge_close_subtitles(subs)):
         start = sub.start / 1000.0  # Convert milliseconds to seconds
         end = sub.end / 1000.0
@@ -196,8 +202,9 @@ def OnExec(ev):
     # export subs
     if win.Find(expswitchID).Checked:
         subs = pysubs2.load(subtitle_path)
-        subs_dst = osp.join(win.Find(targetID).Text, target_timeline.GetName() + subtitle_type)
-        compress_subtitles(subs, subs_dst)
+        subs_dst = osp.join(win.Find(targetID).Text, timeline_name + subtitle_type)
+        compress_subtitles(subs, target_timeline.GetEndFrame()/fps, subs_dst)
+    
     
     
 def OnRefresh(ev):
