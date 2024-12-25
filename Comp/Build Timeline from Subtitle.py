@@ -1,8 +1,8 @@
-import sys
 import os.path as osp
 from glob import glob
 from datetime import datetime
 import pysubs2
+import json
 
 # some element IDs
 winID = "com.blackmagicdesign.resolve.BuildTimelineScript"	# should be unique for single instancing
@@ -12,12 +12,33 @@ sourceID = "SourcePath"
 fileID = "File"
 timelineID = "Timeline"
 expswitchID = "ExportEnable"
-expsubsID = "ExportSubs"
 targetID = "TargetPath"
 logID = "Log"
+config_filename = 'C:\\Users\\Public\\Documents\\davinci_plugin_save.json'
 
-video_type = '.mkv'
-subtitle_type = '.srt'
+def save_global_config(config):
+    json.dump(config, open(config_filename, 'w'), indent=2)
+
+def load_global_config():
+    try:
+        global_config = json.load(open(config_filename, 'r'))
+    except:
+        global_config = {
+            'video_type': '.mkv',
+            'subtitle_type': '.srt',
+            'import_dir': 'D:\\Video2024',
+            'export_dir': 'E:\\SynologyDrive\\PaperReview\\Final',
+        }
+        save_global_config(global_config)
+    return global_config
+
+global_config = load_global_config()
+try:
+    video_type = global_config['video_type']
+    subtitle_type = global_config['subtitle_type']
+except:
+    video_type = '.mkv'
+    subtitle_type = '.srt'
 
 ui = fusion.UIManager
 dispatcher = bmd.UIDispatcher(ui)
@@ -37,14 +58,14 @@ if win:
 # logoPath = fusion.MapPath(r"AllData:Scripts/Comp/SamplePlugin/img/logo.png")
 header = '<html><body><h1 style="vertical-align:middle;">'
 # header = header + '<img src="' + logoPath + '"/>&nbsp;&nbsp;&nbsp;'
-header = header + '<b>Build Timeline from Subtitle Script</b>'
+header = header + '<b>Build Timeline from Subtitle</b>'
 header = header + '</h1></body></html>'
 
 # define the window UI layout
 win = dispatcher.AddWindow({
 	'ID': winID,
 	# 'Geometry': [ 100,100,600,300 ],
-	'WindowTitle': "Build Timeline from Subtitle Script",
+	'WindowTitle': "Build Timeline from Subtitle",
 	},
 	ui.VGroup([
 		ui.Label({ 'Text': header, 'Weight': 0, 'Font': ui.Font({ 'Family': "Times New Roman" }) }),
@@ -81,13 +102,12 @@ win = dispatcher.AddWindow({
                 'Weight': 5
             })
         ]),
-        ui.Button({ 'ID': execID,  'Text': "Import Videos" }),
+        ui.Button({ 'ID': execID,  'Text': "Build Timeline" }),
         ui.TextEdit({
 			'ID': logID,
             'Weight': 5,
             'ReadOnly': True
 			}),
-        
 	])
 )
    
@@ -160,6 +180,8 @@ def OnExec(ev):
         log_print('Please select a file to import')
         return
     
+    log_print('-' * 10 + 'Build Timeline Started' + '-' * 10)
+    
     # add video file to media pool
     file_base = win.Find(fileID).CurrentText
     ms.AddItemListToMediaPool(file_base + video_type)
@@ -185,7 +207,7 @@ def OnExec(ev):
     subs = pysubs2.load(subtitle_path)
     # log_print(clip.GetClipProperty())
     fps = clip.GetClipProperty('FPS')
-    
+    log_print(f'Clip FPS: {fps}' )
     subClipList = []    
     for sub in merge_close_subtitles(subs):
         start = sub.start / 1000.0  # Convert milliseconds to seconds
@@ -205,9 +227,14 @@ def OnExec(ev):
         project.SetCurrentTimeline(target_timeline)
         mediaPool.AppendToTimeline(subClipList)
     else:
-        target_timeline = mediaPool.CreateTimelineFromClips(timeline_name, subClipList[:1])
+        # for unknown reasons it will not create multiple clips
+        # when dumping the whole list to the following function
+        target_timeline = mediaPool.CreateTimelineFromClips(timeline_name, subClipList[:1]) 
         project.SetCurrentTimeline(target_timeline)
         mediaPool.AppendToTimeline(subClipList[1:])
+    # log_print(target_timeline.GetSetting()) # thisline will print all the properties
+    timeline_fps = target_timeline.GetSetting('timelineFrameRate') # sync the fps so that the video lenght can be estimated correctly
+    log_print(f'Timeline FPS: {timeline_fps}' )
     log_print(f'Insert {len(subClipList)} clips, {len(target_timeline.GetItemListInTrack("video", 1))} clips in timeline {target_timeline.GetName()}')
     resolve.OpenPage('Edit')
     
@@ -215,8 +242,14 @@ def OnExec(ev):
     if win.Find(expswitchID).Checked:
         subs = pysubs2.load(subtitle_path)
         subs_dst = osp.join(win.Find(targetID).Text, timeline_name + subtitle_type)
-        compress_subtitles(subs, target_timeline.GetEndFrame()/fps, subs_dst)
-    log_print('-' * 10 + 'Done' + '-' * 10)
+        compress_subtitles(subs, target_timeline.GetEndFrame()/timeline_fps, subs_dst)
+    
+    global_config['import_dir'] = win.Find(sourceID).Text
+    global_config['export_dir'] = win.Find(targetID).Text 
+    save_global_config(global_config)
+    
+    log_print('-' * 10 + 'Build Timeline Done' + '-' * 10)
+
 
 def getTimelineName():
     t = datetime.now()
@@ -236,7 +269,7 @@ def getTimelineName():
     
 # Event handlers
 def OnClose(ev):
-	dispatcher.ExitLoop()
+    dispatcher.ExitLoop()
  
  
 def OnRefresh(ev):
@@ -249,20 +282,18 @@ def OnRefresh(ev):
     combo.AddItems(items)
     # check timeline as well
     win.Find(timelineID).Text = getTimelineName()
+    global_config['import_dir'] = win.Find(sourceID).Text
+    global_config['export_dir'] = win.Find(targetID).Text 
+    save_global_config(global_config)
     
 
 # assign event handlers
 win.On[winID].Close     = OnClose
 win.On[execID].Clicked  = OnExec
 win.On[refreshID].Clicked = OnRefresh
+win.Find(sourceID).Text = global_config['import_dir']
+win.Find(targetID).Text = global_config['export_dir']
 
-
-win.Find(sourceID).Text = 'D:\\Video2024'
-try:
-    from export_to_final import target_dir
-    win.Find(targetID).Text = target_dir
-except:
-    pass
 OnRefresh(None)
 
 # Main dispatcher loop

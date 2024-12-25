@@ -9,7 +9,7 @@ from moviepy.editor import VideoFileClip
 
 # 使用Whisper为所有原始视频素材添加字幕
 config = {
-    'video_path': 'D:\\Video2024',
+    'video_path': 'D:\\Video2025',
     'TuneTimeline': True
 }
 
